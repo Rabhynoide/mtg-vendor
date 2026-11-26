@@ -4,3 +4,6 @@ __pycache__/
 .pytest_cache/
 # exports personnels
 data/
+prix*.csv
+mises_en_vente.json
+moxfield_*.csv
