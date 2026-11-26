@@ -17,14 +17,16 @@ def _key(set_code: str, number: str) -> str:
 
 def resolve_cardmarket_ids(
     printings: Iterable[tuple[str, str]],
-    post_json: Callable[[str, Any], Any] = http.post_json,
-    pause: Callable[[], None] = http.polite_pause,
+    post_json: Callable[[str, Any], Any] | None = None,
+    pause: Callable[[], None] | None = None,
     use_cache: bool = True,
 ) -> dict[tuple[str, str], int | None]:
     """Renvoie {(édition, numéro): idProduct Cardmarket ou None si introuvable}.
 
     Les identifiants déjà connus sont gardés en cache : ils ne changent pas.
     """
+    post_json = post_json or http.post_json
+    pause = pause or http.polite_pause
     known: dict[str, int | None] = cache.load_json(CACHE_FILE, {}) if use_cache else {}
     wanted = list(dict.fromkeys((s.lower(), n) for s, n in printings))
     missing = [p for p in wanted if _key(*p) not in known]
