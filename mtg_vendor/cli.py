@@ -26,6 +26,11 @@ def main(argv: list[str] | None = None) -> int:
     p_sell.add_argument("--suivi", default="mises_en_vente.json", help="Fichier de suivi des cartes déjà en vente")
     p_sell.add_argument("--canal", default=None, help="Navigateur installé à utiliser : brave, chrome, msedge, ou le chemin d'un exécutable (défaut : Chromium de Playwright)")
 
+    p_script = sub.add_parser("script", help="Générer, par édition, le script à coller dans la console de ton navigateur")
+    p_script.add_argument("csv", help="Chemin de l'export Moxfield (haves)")
+    p_script.add_argument("--edition", action="append", help="Code d'édition Moxfield à traiter (ex. khm), répétable")
+    p_script.add_argument("-o", "--dossier", default="scripts", help="Dossier où écrire les scripts (défaut : scripts)")
+
     args = parser.parse_args(argv)
 
     try:
@@ -57,7 +62,60 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "vendre":
         return sell(result.cards, args)
+    if args.command == "script":
+        return make_scripts(result.cards, args)
     return 2
+
+
+def make_scripts(cards, args) -> int:
+    from pathlib import Path
+
+    from .batches import make_batches
+    from .cardmarket_data import CardmarketCatalog
+    from .listing.bulk_form import page_url
+    from .listing.console_script import build_script
+    from .pricing import price_all
+    from .scryfall import resolve_cardmarket_ids
+
+    if args.edition:
+        wanted = {e.lower() for e in args.edition}
+        cards = [c for c in cards if c.set_code in wanted]
+    altered = [c for c in cards if c.altered]
+    if altered:
+        print(f"{len(altered)} carte(s) altérée(s) ignorée(s) : le formulaire n'a pas de case « altérée ».")
+    cards = [c for c in cards if not c.altered]
+    try:
+        catalog = CardmarketCatalog.load()
+        ids = resolve_cardmarket_ids((c.set_code, c.collector_number) for c in cards)
+    except urllib.error.URLError as exc:
+        print(f"Erreur réseau : {exc}", file=sys.stderr)
+        return 1
+    priced = price_all(cards, ids, catalog)
+    unpriced = [p for p in priced if not p.ok]
+    if unpriced:
+        print(f"{len(unpriced)} carte(s) sans prix ignorée(s) (voir « mtg-vendor prix »).")
+
+    groups = {}
+    for batch in make_batches(priced):
+        groups.setdefault((batch.id_expansion, batch.set_code), []).extend(batch.items)
+    if not groups:
+        print("Aucune carte à mettre en vente.")
+        return 0
+
+    out = Path(args.dossier)
+    out.mkdir(parents=True, exist_ok=True)
+    index = ["Mise en vente : pour chaque édition, ouvre l'adresse, puis F12 > Console, colle le script et Entrée.",
+             "(La première fois, Brave/Chrome demande de taper « allow pasting » avant de coller.)", ""]
+    for (id_expansion, set_code), items in groups.items():
+        path = out / f"{set_code}.js"
+        path.write_text(build_script(set_code, items), encoding="utf-8")
+        qty = sum(p.card.quantity for p in items)
+        index.append(f"{set_code} ({qty} carte(s)) : {page_url(id_expansion, 1)}")
+        index.append(f"    script : {path}")
+    (out / "LISEZMOI.txt").write_text("\n".join(index) + "\n", encoding="utf-8")
+    print("\n".join(index))
+    print(f"\nRécapitulatif écrit dans {out / 'LISEZMOI.txt'}")
+    return 0
 
 
 def sell(cards, args) -> int:

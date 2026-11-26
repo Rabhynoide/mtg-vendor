@@ -56,7 +56,8 @@ class CardmarketCatalog:
         return cls(products, prices)
 
     @classmethod
-    def load(cls, get_json: Callable[[str], Any] = http.get_json, max_age_hours: float = 20) -> "CardmarketCatalog":
+    def load(cls, get_json: Callable[[str], Any] | None = None, max_age_hours: float = 20) -> "CardmarketCatalog":
+        get_json = get_json or http.get_json
         products_json = cache.cached_json("cm_products.json", max_age_hours, lambda: get_json(PRODUCTS_URL))
         prices_json = cache.cached_json("cm_price_guide.json", max_age_hours, lambda: get_json(PRICE_GUIDE_URL))
         return cls.from_json(products_json, prices_json)
