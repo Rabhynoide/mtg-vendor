@@ -22,7 +22,7 @@ pip install -e .[dev]
    tu vérifies la page, tu cliques sur « Mettre des cartes en vente », puis tu appuies sur Entrée dans le terminal.
    - Première fois : `py -m pip install -e .[vente]` puis `py -m playwright install chromium`,
      et connecte-toi à Cardmarket dans la fenêtre qui s'ouvre (la session est gardée dans `~/.mtg-vendor/navigateur`).
-   - `--edition khm` pour ne traiter qu'une édition (répétable), `--canal chrome` pour utiliser ton Chrome installé.
+   - `--edition khm` pour ne traiter qu'une édition (répétable), `--canal brave` (ou `chrome`, `msedge`, ou le chemin d'un exécutable) pour utiliser un navigateur installé.
    - Les cartes mises en vente sont notées dans `mises_en_vente.json` : relancer la commande ne crée pas de doublons.
    - Les cartes altérées et celles sans prix sont ignorées.
 
