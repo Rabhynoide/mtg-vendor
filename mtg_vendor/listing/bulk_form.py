@@ -160,10 +160,37 @@ def list_expansion(
     return not_done
 
 
+BRAVE_PATHS = [
+    Path(r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"),
+    Path(r"C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe"),
+    Path.home() / "AppData/Local/BraveSoftware/Brave-Browser/Application/brave.exe",
+    Path("/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"),
+    Path("/usr/bin/brave-browser"),
+]
+
+
+def find_brave() -> str | None:
+    for path in BRAVE_PATHS:
+        if path.exists():
+            return str(path)
+    return None
+
+
 def open_browser(playwright, channel: str | None = None, profile_dir: Path = PROFILE_DIR):
+    """channel : None (Chromium de Playwright), "chrome", "msedge", "brave" ou le chemin d'un exécutable."""
     profile_dir.mkdir(parents=True, exist_ok=True)
+    options = {}
+    if channel == "brave":
+        exe = find_brave()
+        if exe is None:
+            raise RuntimeError("Brave introuvable : passe le chemin de brave.exe à --canal")
+        options["executable_path"] = exe
+    elif channel and (channel.endswith(".exe") or "/" in channel or "\\" in channel):
+        options["executable_path"] = channel
+    elif channel:
+        options["channel"] = channel
     context = playwright.chromium.launch_persistent_context(
-        str(profile_dir), headless=False, channel=channel, locale="fr-FR", viewport={"width": 1400, "height": 900},
+        str(profile_dir), headless=False, locale="fr-FR", viewport={"width": 1400, "height": 900}, **options,
     )
     page = context.pages[0] if context.pages else context.new_page()
     return context, page

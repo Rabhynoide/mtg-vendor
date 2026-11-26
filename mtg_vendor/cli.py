@@ -24,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
     p_sell.add_argument("csv", help="Chemin de l'export Moxfield (haves)")
     p_sell.add_argument("--edition", action="append", help="Code d'édition Moxfield à traiter (ex. khm), répétable")
     p_sell.add_argument("--suivi", default="mises_en_vente.json", help="Fichier de suivi des cartes déjà en vente")
-    p_sell.add_argument("--canal", default=None, help="Navigateur installé à utiliser : chrome ou msedge (défaut : Chromium de Playwright)")
+    p_sell.add_argument("--canal", default=None, help="Navigateur installé à utiliser : brave, chrome, msedge, ou le chemin d'un exécutable (défaut : Chromium de Playwright)")
 
     args = parser.parse_args(argv)
 
