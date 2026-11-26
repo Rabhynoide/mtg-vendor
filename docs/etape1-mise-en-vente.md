@@ -34,9 +34,13 @@ mtg_vendor/
   state.py        # suivi des cartes déjà mises en vente
 ```
 
-## À vérifier par toi
+## Vérifié le 26/11/2026
 
-- Ouvre `https://www.cardmarket.com/fr/Magic/Stock/ListingMethods/BulkListing` connecté à ton compte : la page s'affiche-t-elle ?
-- Si oui, une capture d'écran du formulaire m'aidera pour l'étape 4.
+- La page « Lister les cartes en masse » est accessible avec un compte particulier.
+- Filtres dans l'adresse : `?idExpansion=<id>&idRarity=<id>&sortBy=number`.
+- Après filtrage : 100 cartes par page (ex. Kaldheim : 285 résultats, 3 pages). Chaque ligne a :
+  nom FR + nom EN, rareté, Langue (liste), État (liste), foil (case étoile), altérée (case), Commentaires, Nombre, Prix (€).
+- Le bouton « IMPORT CSV… » vient de l'extension cardmarket-bulk-import, pas de Cardmarket.
+- **Choix final** : Playwright remplit lui-même ce tableau, la validation de chaque lot reste manuelle.
 
 Sources : [Cardmarket API (aide officielle)](https://help.cardmarket.com/en/cardmarket-api), [cardmarket-bulk-import](https://github.com/PedroPerpetua/cardmarket-bulk-import), [Guide Cardmarket 2026 (cardpulse)](https://www.cardpulse.club/blog/cardmarket-complete-guide-2026)
